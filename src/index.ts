@@ -125,6 +125,8 @@ app.post("/query", authMiddleware, async (req, res) => {
   const { query, query_embedding, top_k, min_score, allowed_document_ids, user_id } = parsed.data;
   const topK = Math.max(1, Math.min(maxTopK, top_k ?? defaultTopK));
   const minScore = Math.max(0, Math.min(1, min_score ?? defaultMinScore));
+  const lexicalLimit = Math.max(30, Math.min(120, topK * 8));
+  const semanticLimit = Math.max(60, Math.min(220, topK * 16));
   const started = Date.now();
 
   if (!query) return res.status(400).json({ error: "query_required" });
@@ -162,7 +164,7 @@ app.post("/query", authMiddleware, async (req, res) => {
       JOIN public.gbrain_documents d ON d.id = c.document_id
       WHERE ${lexicalFilter.clauses.join(" AND ")}
       ORDER BY ts_rank_cd(to_tsvector('simple', c.content), websearch_to_tsquery('simple', $1::text)) DESC
-      LIMIT 100
+      LIMIT ${lexicalLimit}
     `;
     const lexicalPromise = client.query(lexicalSql, [query, ...lexicalFilter.params]);
 
@@ -190,7 +192,7 @@ app.post("/query", authMiddleware, async (req, res) => {
       WHERE (1 - (c.embedding <=> $1::vector)) >= $2
         AND ${semanticFilter.clauses.join(" AND ")}
       ORDER BY c.embedding <=> $1::vector ASC
-      LIMIT 400
+      LIMIT ${semanticLimit}
     `;
 
     const [semanticResult, lexicalResult] = await Promise.all([
