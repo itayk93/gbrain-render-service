@@ -82,6 +82,7 @@ app.get("/health", async (_req, res) => {
     await pool.query("SELECT 1");
     res.json({ ok: true, service: "lony-gbrain-service" });
   } catch (e) {
+    console.error("[HEALTH] db_error", e instanceof Error ? e.message : e);
     res.status(500).json({ ok: false, error: e instanceof Error ? e.message : "db_error" });
   }
 });
