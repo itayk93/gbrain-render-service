@@ -136,9 +136,8 @@ app.post("/query", authMiddleware, async (req, res) => {
       WHERE (1 - (c.embedding <=> $1::vector)) >= $2
         AND ${semanticFilter.clauses.join(" AND ")}
       ORDER BY c.embedding <=> $1::vector ASC
-      LIMIT 300
+      LIMIT 100
     `;
-    const semanticResult = await client.query(semanticSql, [vectorLiteral, minScore, ...semanticFilter.params]);
 
     const lexicalSql = `
       SELECT
@@ -153,9 +152,14 @@ app.post("/query", authMiddleware, async (req, res) => {
       JOIN public.gbrain_documents d ON d.id = c.document_id
       WHERE ${lexicalFilter.clauses.join(" AND ")}
       ORDER BY ts_rank_cd(to_tsvector('simple', c.content), websearch_to_tsquery('simple', $1::text)) DESC
-      LIMIT 200
+      LIMIT 50
     `;
-    const lexicalResult = await client.query(lexicalSql, [query, ...lexicalFilter.params]);
+
+    // Execute semantic and lexical queries in parallel
+    const [semanticResult, lexicalResult] = await Promise.all([
+      client.query(semanticSql, [vectorLiteral, minScore, ...semanticFilter.params]),
+      client.query(lexicalSql, [query, ...lexicalFilter.params]),
+    ]);
 
     const keyOf = (row: any) => `${row.id}`;
     const semanticRank = new Map<string, number>();
