@@ -13,6 +13,38 @@ const defaultMinScore = Math.max(0, Math.min(1, Number(process.env.DEFAULT_MIN_S
 if (!databaseUrl) throw new Error("DATABASE_URL is required");
 if (!serviceApiKey) throw new Error("SERVICE_API_KEY is required");
 
+// --- Date Helpers ---
+const parseIsraeliDate = (str: string): string | null => {
+  const match = str.match(/(\d{1,2})[.\/](\d{1,2})[.\/](\d{2,4})/);
+  if (!match) return null;
+  let [_, d, m, y] = match;
+  if (y.length === 2) y = "20" + y;
+  const date = new Date(`${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`);
+  if (isNaN(date.getTime())) return null;
+  return date.toISOString().split("T")[0];
+};
+
+const extractEarliestDate = (text: string): string | null => {
+  const dates: string[] = [];
+  const regex = /(\d{1,2})[.\/](\d{1,2})[.\/](\d{2,4})/g;
+  let m;
+  while ((m = regex.exec(text)) !== null) {
+    const d = parseIsraeliDate(m[0]);
+    if (d) dates.push(d);
+  }
+  if (dates.length === 0) return null;
+  return dates.sort()[0];
+};
+
+const isScheduleQuestion = (q: string) => {
+  const s = (q || "").toLowerCase();
+  return [
+    "שיעור הבא", "השיעור הבא", "שיעור הקרוב", "השיעור הקרוב",
+    "מפגש הבא", "מפגש הקרוב", "מה השיעור", "לוז", "לו\"ז", "לו״ז",
+    "לוח זמנים", "השיעורים הבאים", "המפגשים הבאים"
+  ].some(k => s.includes(k));
+};
+
 const pool = new Pool({
   connectionString: databaseUrl,
   ssl: { rejectUnauthorized: false },
@@ -173,14 +205,37 @@ app.post("/query", authMiddleware, async (req, res) => {
       if (!byId.has(keyOf(row))) byId.set(keyOf(row), row);
     }
 
-    const fused = Array.from(byId.values()).map((row) => {
+    let candidates = Array.from(byId.values()).map((row) => {
       const id = keyOf(row);
       const sRank = semanticRank.get(id);
       const lRank = lexicalRank.get(id);
       const semanticScore = Number(row.score ?? 0);
-      const fusedScore = (sRank ? 1 / (50 + sRank) : 0) + (lRank ? 1 / (50 + lRank) : 0);
+      const fusedScore = (sRank ? 1 / (60 + sRank) : 0) + (lRank ? 1 / (60 + lRank) : 0);
       return { ...row, score: semanticScore, fused_score: fusedScore };
-    }).sort((a, b) => b.fused_score - a.fused_score || b.score - a.score).slice(0, topK);
+    }).sort((a, b) => b.fused_score - a.fused_score);
+
+    // --- Date-Aware Sorting ---
+    if (isScheduleQuestion(query)) {
+      const todayIso = new Date().toISOString().split("T")[0];
+      candidates = candidates.sort((a, b) => {
+        const aDate = extractEarliestDate(a.content);
+        const bDate = extractEarliestDate(b.content);
+        
+        if (aDate && bDate) {
+          const aFuture = aDate >= todayIso ? 0 : 1;
+          const bFuture = bDate >= todayIso ? 0 : 1;
+          if (aFuture !== bFuture) return aFuture - bFuture;
+          const aDiff = Math.abs(new Date(aDate).getTime() - new Date(todayIso).getTime());
+          const bDiff = Math.abs(new Date(bDate).getTime() - new Date(todayIso).getTime());
+          return aDiff - bDiff;
+        }
+        if (aDate) return -1;
+        if (bDate) return 1;
+        return 0;
+      });
+    }
+
+    const fused = candidates.slice(0, topK);
 
     const out = {
       chunks: fused.map((r) => ({
