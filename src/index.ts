@@ -105,6 +105,31 @@ const deleteSchema = z.object({
 
 const toPgVectorLiteral = (embedding: number[]): string => `[${embedding.join(",")}]`;
 
+const querySchema = z.object({
+  query: z.string(),
+  query_embedding: z.array(z.number()).optional(),
+  top_k: z.number().optional(),
+  min_score: z.number().optional(),
+  user_id: z.string().uuid().optional(),
+  allowed_document_ids: z.array(z.string()).optional(),
+});
+
+const ingestSchema = z.object({
+  document: z.object({
+    id: z.string(),
+    file_name: z.string().optional(),
+    category: z.string().optional(),
+    is_enabled: z.boolean().optional(),
+  }),
+  chunks: z.array(z.object({
+    id: z.string(),
+    document_id: z.string(),
+    chunk_index: z.number(),
+    content: z.string(),
+    embedding: z.array(z.number()),
+  })),
+});
+
 app.get("/health", async (_req, res) => {
   try {
     await pool.query("SELECT 1");
@@ -117,7 +142,12 @@ app.get("/health", async (_req, res) => {
 
 app.post("/query", authMiddleware, async (req, res) => {
   const parsed = querySchema.safeParse(req.body);
-  const { query, query_embedding, top_k, min_score, allowed_document_ids, user_id } = req.body;
+  if (!parsed.success) {
+    console.error("[QUERY] validation_error", parsed.error.flatten());
+    return res.status(400).json({ error: "invalid_payload", details: parsed.error.flatten() });
+  }
+
+  const { query, query_embedding, top_k, min_score, allowed_document_ids, user_id } = parsed.data;
   const topK = Math.max(1, Math.min(maxTopK, top_k ?? defaultTopK));
   const minScore = Math.max(0, Math.min(1, min_score ?? defaultMinScore));
   const started = Date.now();
