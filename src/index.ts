@@ -136,7 +136,7 @@ app.post("/query", authMiddleware, async (req, res) => {
       WHERE (1 - (c.embedding <=> $1::vector)) >= $2
         AND ${semanticFilter.clauses.join(" AND ")}
       ORDER BY c.embedding <=> $1::vector ASC
-      LIMIT 100
+      LIMIT 200
     `;
 
     const lexicalSql = `
