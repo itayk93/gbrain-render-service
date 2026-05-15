@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Research | Septuagint Network</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        .upload-zone {
+            border: 2px dashed var(--border-color);
+            padding: 40px;
+            text-align: center;
+            background: #fdfdfd;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+        }
+        .upload-zone:hover {
+            border-color: var(--oxford-blue);
+            background: #f0f4f8;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container header-inner">
+            <div class="brand"><a href="index.html" style="color: inherit; text-decoration: none">Septuagint Studies Network</a></div>
+            <nav>
+                <a href="index.html">Billboard</a>
+                <a href="directory.html">Directory</a>
+                <a href="profile.html">Profile</a>
+                <a href="login.html" style="border: 1px solid white; padding: 5px 15px; border-radius: 2px">Login</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container section">
+        <div style="max-width: 800px; margin: 0 auto">
+            <a href="profile.html" style="font-size: 12px; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; color: var(--text-muted); display: flex; align-items: center; gap: 5px; margin-bottom: 30px">
+                <i data-lucide="arrow-left" style="width: 14px"></i> Back to Profile
+            </a>
+            
+            <h1 style="font-size: 36px; margin-bottom: 40px">Upload New Research</h1>
+
+            <form action="profile.html">
+                <div class="card" style="padding: 40px; margin-bottom: 40px">
+                    <h2 style="font-size: 24px; margin-bottom: 30px">Publication Details</h2>
+                    
+                    <div class="form-group">
+                        <label>Publication Title</label>
+                        <input type="text" placeholder="e.g. The Textual Tradition of the Greek Minor Prophets" required>
+                    </div>
+
+                    <div class="form-group" style="margin-top: 20px">
+                        <label>Abstract / Description</label>
+                        <textarea style="width: 100%; padding: 12px; border: 1px solid var(--border-color); font-family: var(--font-sans); height: 120px; outline: none" placeholder="Provide a brief summary of your work..."></textarea>
+                    </div>
+
+                    <div style="margin-top: 30px">
+                        <label style="display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 700; margin-bottom: 12px; color: var(--oxford-blue)">Research Document (PDF)</label>
+                        <div class="upload-zone">
+                            <i data-lucide="file-text" style="width: 48px; color: var(--text-muted); margin-bottom: 15px"></i>
+                            <p style="font-weight: 600">Drag and drop your PDF here</p>
+                            <p style="font-size: 12px; color: var(--text-muted)">Max file size: 50MB</p>
+                            <input type="file" style="display: none">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card" style="padding: 40px; margin-bottom: 40px">
+                    <h2 style="font-size: 24px; margin-bottom: 30px">Manuscript Gallery</h2>
+                    <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 20px">Upload high-resolution images to accompany your research.</p>
+                    
+                    <div class="upload-zone" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; padding: 20px">
+                        <div style="aspect-ratio: 1; background: #eee; display: flex; align-items: center; justify-content: center; border: 1px dashed #ccc">
+                            <i data-lucide="plus" style="color: #999"></i>
+                        </div>
+                        <div style="aspect-ratio: 1; background: #eee; border: 1px dashed #ccc"></div>
+                        <div style="aspect-ratio: 1; background: #eee; border: 1px dashed #ccc"></div>
+                    </div>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; align-items: center">
+                    <label style="display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--text-muted); cursor: pointer">
+                        <input type="checkbox" checked> Publish immediately to Academic Billboard
+                    </label>
+                    <button type="submit" class="btn" style="padding: 15px 40px; background-color: var(--gold-accent)">Confirm & Publish</button>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container" style="text-align: center; font-size: 12px; opacity: 0.6">
+            &copy; 2026 Septuagint Studies Researchers Network | Secure Upload Portal
+        </div>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>

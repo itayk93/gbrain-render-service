@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Septuagint Studies - Home</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container navbar-content">
+            <div class="logo-container">
+                <div class="logo">S</div>
+                <div class="search-bar">
+                    <i data-lucide="search" style="width: 16px; color: var(--text-secondary)"></i>
+                    <input type="text" placeholder="Search researchers, CFPs...">
+                </div>
+            </div>
+            <div class="nav-links">
+                <a href="index.html" class="nav-item active">
+                    <i data-lucide="home" style="width: 20px; margin-bottom: 2px"></i>
+                    <span>Home</span>
+                </a>
+                <div class="nav-item">
+                    <i data-lucide="users" style="width: 20px; margin-bottom: 2px"></i>
+                    <span>Network</span>
+                </div>
+                <a href="directory.html" class="nav-item">
+                    <i data-lucide="briefcase" style="width: 20px; margin-bottom: 2px"></i>
+                    <span>Directory</span>
+                </a>
+                <div class="nav-item">
+                    <i data-lucide="message-circle" style="width: 20px; margin-bottom: 2px"></i>
+                    <span>Messaging</span>
+                </div>
+                <div class="nav-item">
+                    <i data-lucide="bell" style="width: 20px; margin-bottom: 2px"></i>
+                    <span>Notifications</span>
+                </div>
+                <a href="profile.html" class="nav-item">
+                    <i data-lucide="user" style="width: 20px; margin-bottom: 2px"></i>
+                    <span>Me</span>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="grid-layout">
+            <!-- Sidebar -->
+            <aside style="width: 225px">
+                <div class="card fade-in" style="padding-bottom: 12px">
+                    <div class="sidebar-banner"></div>
+                    <div class="sidebar-avatar-container">
+                        <div class="avatar-circle">
+                            <img src="images/male.png" alt="Profile">
+                        </div>
+                        <h3 style="margin-top: 12px; font-size: 16px">Dimi Septuagint</h3>
+                        <p style="font-size: 12px; color: var(--text-secondary); text-align: center; margin-top: 4px">
+                            PhD Candidate in Ancient Texts at Oxford University
+                        </p>
+                    </div>
+                    <div style="margin-top: 16px; padding: 12px 0; border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color)">
+                        <div class="sidebar-link">
+                            <span style="font-size: 12px; color: var(--text-secondary)">Profile viewers</span>
+                            <span style="font-size: 12px; color: var(--primary-color); font-weight: 600">42</span>
+                        </div>
+                        <div class="sidebar-link">
+                            <span style="font-size: 12px; color: var(--text-secondary)">Post impressions</span>
+                            <span style="font-size: 12px; color: var(--primary-color); font-weight: 600">1,204</span>
+                        </div>
+                    </div>
+                    <div class="sidebar-link" style="padding: 12px">
+                        <i data-lucide="bookmark" style="width: 16px; color: var(--text-secondary); margin-right: 8px"></i>
+                        <span style="font-size: 12px; font-weight: 600">My Items</span>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Main Feed -->
+            <main>
+                <div class="card fade-in" style="padding: 12px 16px">
+                    <div style="display: flex; gap: 12px">
+                        <div style="width: 48px; height: 48px; border-radius: 50%; overflow: hidden">
+                            <img src="images/male.png" alt="User" style="width: 100%; height: 100%; object-fit: cover">
+                        </div>
+                        <div style="flex: 1; border: 1px solid var(--border-color); border-radius: 35px; display: flex; align-items: center; padding: 0 16px; color: var(--text-secondary); font-weight: 600; font-size: 14px; cursor: pointer">
+                            Share a research update, CFP or manuscript find...
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Featured Post -->
+                <div class="card fade-in" style="margin-top: 8px">
+                    <div style="padding: 12px 16px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between">
+                        <span style="font-size: 12px; font-weight: bold; color: var(--primary-color)">FEATURED CALL FOR PAPERS</span>
+                        <span style="font-size: 12px; color: var(--text-secondary)">Deadline: Oct 15, 2026</span>
+                    </div>
+                    <img src="images/billboard.png" alt="Billboard" style="width: 100%; height: 240px; object-fit: cover">
+                    <div style="padding: 16px">
+                        <h2 style="font-size: 20px; margin-bottom: 8px">Septuagint & Digital Humanities: New Perspectives</h2>
+                        <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 16px">
+                            International Conference at the University of Oxford. We are looking for submissions focusing on computational linguistics applied to the Greek Old Testament.
+                        </p>
+                        <div style="display: flex; gap: 16px; font-size: 13px; color: var(--text-secondary)">
+                            <div style="display: flex; align-items: center; gap: 4px"><i data-lucide="map-pin" style="width: 14px"></i> Oxford, UK</div>
+                            <div style="display: flex; align-items: center; gap: 4px"><i data-lucide="calendar" style="width: 14px"></i> Dec 10-12, 2026</div>
+                        </div>
+                        <a href="#" class="btn-primary" style="margin-top: 16px; width: 100%">Submit Abstract</a>
+                    </div>
+                </div>
+
+                <!-- Regular Feed Item -->
+                <div class="card fade-in" style="margin-top: 8px; padding: 12px 0">
+                    <div class="feed-header">
+                        <div class="feed-avatar">
+                            <img src="images/female.png" alt="Sarah">
+                        </div>
+                        <div>
+                            <h4 style="font-size: 14px">Prof. Sarah Jenkins</h4>
+                            <p style="font-size: 12px; color: var(--text-secondary)">Senior Research Fellow at Cambridge</p>
+                            <p style="font-size: 12px; color: var(--text-secondary)">2h • Edited</p>
+                        </div>
+                    </div>
+                    <div style="padding: 0 16px; font-size: 14px; margin-bottom: 12px">
+                        Excited to share that my latest paper on 'The Hesychian Recension and its Influence' has been published in the Journal of Septuagint and Cognate Studies!
+                    </div>
+                    <div class="feed-actions">
+                        <div class="feed-action-btn"><i data-lucide="thumbs-up" style="width: 18px"></i><span>Like</span></div>
+                        <div class="feed-action-btn"><i data-lucide="message-square" style="width: 18px"></i><span>Comment</span></div>
+                        <div class="feed-action-btn"><i data-lucide="share-2" style="width: 18px"></i><span>Repost</span></div>
+                        <div class="feed-action-btn"><i data-lucide="send" style="width: 18px"></i><span>Send</span></div>
+                    </div>
+                </div>
+            </main>
+
+            <!-- Right Sidebar -->
+            <aside style="width: 300px">
+                <div class="card fade-in" style="padding: 12px">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px">
+                        <h3 style="font-size: 16px">Network News</h3>
+                        <i data-lucide="info" style="width: 16px; color: var(--text-secondary)"></i>
+                    </div>
+                    <div style="margin-bottom: 12px">
+                        <h4 style="font-size: 14px; font-weight: 600">• New Lexicon Project Launches</h4>
+                        <p style="font-size: 12px; color: var(--text-secondary); margin-left: 12px">Top news • 1,240 readers</p>
+                    </div>
+                    <div style="margin-bottom: 12px">
+                        <h4 style="font-size: 14px; font-weight: 600">• Upcoming: LXX Graduate Seminar</h4>
+                        <p style="font-size: 12px; color: var(--text-secondary); margin-left: 12px">2d ago • 856 readers</p>
+                    </div>
+                    <button style="color: var(--text-secondary); font-size: 14px; font-weight: 600; margin-top: 8px">Show more</button>
+                </div>
+            </aside>
+        </div>
+    </div>
+
+    <div class="messaging-dock">
+        <div style="display: flex; align-items: center; gap: 8px">
+            <div style="width: 32px; height: 32px; border-radius: 50%; overflow: hidden">
+                <img src="images/male.png" alt="User" style="width: 100%; height: 100%; object-fit: cover">
+            </div>
+            <span style="font-size: 14px; font-weight: 600">Messaging</span>
+        </div>
+        <div style="color: var(--text-secondary)">•••</div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | Septuagint Network</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="auth-body">
+    <div class="auth-card">
+        <div style="text-align: center; margin-bottom: 30px">
+            <div class="brand" style="color: var(--oxford-blue); font-size: 36px"><a href="index.html" style="color: inherit; text-decoration: none">SSRN</a></div>
+        </div>
+        <h1>Researcher Login</h1>
+        <p>Enter your academic credentials to access the network.</p>
+
+        <form action="index.html">
+            <div class="form-group">
+                <label>Academic Email</label>
+                <input type="email" placeholder="scholar@ox.ac.uk" required>
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" placeholder="••••••••" required>
+            </div>
+            <div style="margin-bottom: 25px; display: flex; justify-content: space-between; font-size: 12px">
+                <label style="display: flex; align-items: center; gap: 5px; cursor: pointer">
+                    <input type="checkbox"> Remember me
+                </label>
+                <a href="#" style="color: var(--oxford-blue); font-weight: 600">Forgot Password?</a>
+            </div>
+            <button type="submit" class="btn" style="width: 100%; padding: 15px">Access Network</button>
+        </form>
+
+        <div style="margin-top: 30px; text-align: center; font-size: 14px">
+            New researcher? <a href="register.html" style="color: var(--oxford-blue); font-weight: 700; text-decoration: underline">Request Account</a>
+        </div>
+        
+        <div style="margin-top: 40px; text-align: center">
+            <a href="index.html" style="font-size: 11px; opacity: 0.5; text-transform: uppercase; letter-spacing: 1px">← Back to Billboard</a>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>
