@@ -105,31 +105,6 @@ const deleteSchema = z.object({
 
 const toPgVectorLiteral = (embedding: number[]): string => `[${embedding.join(",")}]`;
 
-const querySchema = z.object({
-  query: z.string(),
-  query_embedding: z.array(z.number()).optional(),
-  top_k: z.number().optional(),
-  min_score: z.number().optional(),
-  user_id: z.string().uuid().optional(),
-  allowed_document_ids: z.array(z.string()).optional(),
-});
-
-const ingestSchema = z.object({
-  document: z.object({
-    id: z.string(),
-    file_name: z.string().optional(),
-    category: z.string().optional(),
-    is_enabled: z.boolean().optional(),
-  }),
-  chunks: z.array(z.object({
-    id: z.string(),
-    document_id: z.string(),
-    chunk_index: z.number(),
-    content: z.string(),
-    embedding: z.array(z.number()),
-  })),
-});
-
 app.get("/health", async (_req, res) => {
   try {
     await pool.query("SELECT 1");
