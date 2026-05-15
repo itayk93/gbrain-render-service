@@ -117,22 +117,19 @@ app.get("/health", async (_req, res) => {
 
 app.post("/query", authMiddleware, async (req, res) => {
   const parsed = querySchema.safeParse(req.body);
-  if (!parsed.success) return res.status(400).json({ error: "invalid_payload", details: parsed.error.flatten() });
-
-  const { query, query_embedding, user_id, allowed_document_ids } = parsed.data;
-  const topK = Math.max(1, Math.min(maxTopK, parsed.data.top_k ?? defaultTopK));
-  const minScore = Math.max(0, Math.min(1, parsed.data.min_score ?? defaultMinScore));
+  const { query, query_embedding, top_k, min_score, allowed_document_ids, user_id } = req.body;
+  const topK = Math.max(1, Math.min(maxTopK, top_k ?? defaultTopK));
+  const minScore = Math.max(0, Math.min(1, min_score ?? defaultMinScore));
   const started = Date.now();
-  console.log(`[QUERY] start topK=${topK} minScore=${minScore} user=${user_id ? "yes" : "no"} allowList=${allowed_document_ids?.length || 0}`);
+
+  if (!query) return res.status(400).json({ error: "query_required" });
+
   let client: PoolClient | undefined;
+  console.log(`[QUERY] start topK=${topK} minScore=${minScore} user=${user_id ? "yes" : "no"} allowList=${allowed_document_ids?.length || 0}`);
 
   try {
-    if (!query_embedding) {
-      console.error("[QUERY] missing query_embedding");
-      return res.status(400).json({ error: "query_embedding_required" });
-    }
-    const vectorLiteral = toPgVectorLiteral(query_embedding);
     client = await pool.connect();
+
     const buildFilter = (firstParamIndex: number) => {
       const clauses = ["d.is_enabled = true"];
       const params: unknown[] = [];
@@ -151,17 +148,37 @@ app.post("/query", authMiddleware, async (req, res) => {
       return { clauses, params };
     };
 
-    const semanticFilter = buildFilter(3);
     const lexicalFilter = buildFilter(2);
+    const lexicalSql = `
+      SELECT
+        c.id, c.document_id, c.chunk_index, c.content, c.metadata, d.file_name,
+        ts_rank_cd(to_tsvector('simple', c.content), websearch_to_tsquery('simple', $1::text))::float8 AS lex_score
+      FROM public.gbrain_chunks c
+      JOIN public.gbrain_documents d ON d.id = c.document_id
+      WHERE ${lexicalFilter.clauses.join(" AND ")}
+      ORDER BY ts_rank_cd(to_tsvector('simple', c.content), websearch_to_tsquery('simple', $1::text)) DESC
+      LIMIT 100
+    `;
+    const lexicalPromise = client.query(lexicalSql, [query, ...lexicalFilter.params]);
 
+    let embedding = query_embedding;
+    if (!embedding) {
+      const aiRes = await fetch("https://api.openai.com/v1/embeddings", {
+        method: "POST",
+        headers: { "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ model: "text-embedding-3-small", input: query }),
+      });
+      const aiData = await aiRes.json();
+      embedding = aiData.data?.[0]?.embedding;
+    }
+
+    if (!embedding) throw new Error("embedding_failed");
+    const vectorLiteral = toPgVectorLiteral(embedding);
+
+    const semanticFilter = buildFilter(3);
     const semanticSql = `
       SELECT
-        c.id,
-        c.document_id,
-        c.chunk_index,
-        c.content,
-        c.metadata,
-        d.file_name,
+        c.id, c.document_id, c.chunk_index, c.content, c.metadata, d.file_name,
         (1 - (c.embedding <=> $1::vector))::float8 AS score
       FROM public.gbrain_chunks c
       JOIN public.gbrain_documents d ON d.id = c.document_id
@@ -171,26 +188,9 @@ app.post("/query", authMiddleware, async (req, res) => {
       LIMIT 400
     `;
 
-    const lexicalSql = `
-      SELECT
-        c.id,
-        c.document_id,
-        c.chunk_index,
-        c.content,
-        c.metadata,
-        d.file_name,
-        ts_rank_cd(to_tsvector('simple', c.content), websearch_to_tsquery('simple', $1::text))::float8 AS lex_score
-      FROM public.gbrain_chunks c
-      JOIN public.gbrain_documents d ON d.id = c.document_id
-      WHERE ${lexicalFilter.clauses.join(" AND ")}
-      ORDER BY ts_rank_cd(to_tsvector('simple', c.content), websearch_to_tsquery('simple', $1::text)) DESC
-      LIMIT 100
-    `;
-
-    // Execute semantic and lexical queries in parallel
     const [semanticResult, lexicalResult] = await Promise.all([
       client.query(semanticSql, [vectorLiteral, minScore, ...semanticFilter.params]),
-      client.query(lexicalSql, [query, ...lexicalFilter.params]),
+      lexicalPromise,
     ]);
 
     const keyOf = (row: any) => `${row.id}`;
