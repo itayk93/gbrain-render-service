@@ -1,23 +1,18 @@
 import "dotenv/config";
 import express, { type Request, type Response, type NextFunction } from "express";
-import OpenAI from "openai";
 import { Pool, type PoolClient } from "pg";
 import { z } from "zod";
 
 const port = parseInt(process.env.PORT || "10000", 10);
 const databaseUrl = process.env.DATABASE_URL;
 const serviceApiKey = process.env.SERVICE_API_KEY;
-const openaiApiKey = process.env.OPENAI_API_KEY;
-const embeddingModel = process.env.OPENAI_EMBEDDING_MODEL || "text-embedding-3-small";
 const defaultTopK = Math.max(1, Math.min(50, parseInt(process.env.DEFAULT_TOP_K || "20", 10)));
 const maxTopK = Math.max(defaultTopK, Math.min(100, parseInt(process.env.MAX_TOP_K || "50", 10)));
 const defaultMinScore = Math.max(0, Math.min(1, Number(process.env.DEFAULT_MIN_SCORE || "0.2")));
 
 if (!databaseUrl) throw new Error("DATABASE_URL is required");
 if (!serviceApiKey) throw new Error("SERVICE_API_KEY is required");
-if (!openaiApiKey) throw new Error("OPENAI_API_KEY is required");
 
-const openai = new OpenAI({ apiKey: openaiApiKey });
 const pool = new Pool({
   connectionString: databaseUrl,
   ssl: { rejectUnauthorized: false },
@@ -50,6 +45,7 @@ const querySchema = z.object({
   query: z.string().min(1),
   top_k: z.number().int().min(1).max(100).optional(),
   min_score: z.number().min(0).max(1).optional(),
+  query_embedding: z.array(z.number()).length(1536).optional(),
   user_id: z.string().nullable().optional(),
   allowed_document_ids: z.array(z.string()).nullable().optional(),
 });
@@ -91,7 +87,7 @@ app.post("/query", authMiddleware, async (req, res) => {
   const parsed = querySchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: "invalid_payload", details: parsed.error.flatten() });
 
-  const { query, user_id, allowed_document_ids } = parsed.data;
+  const { query, query_embedding, user_id, allowed_document_ids } = parsed.data;
   const topK = Math.max(1, Math.min(maxTopK, parsed.data.top_k ?? defaultTopK));
   const minScore = Math.max(0, Math.min(1, parsed.data.min_score ?? defaultMinScore));
   const started = Date.now();
@@ -99,16 +95,11 @@ app.post("/query", authMiddleware, async (req, res) => {
   let client: PoolClient | undefined;
 
   try {
-    const emb = await openai.embeddings.create({
-      model: embeddingModel,
-      input: query.slice(0, 8000),
-    });
-    const vector = emb.data[0]?.embedding;
-    if (!vector) {
-      console.error("[QUERY] embedding_failed empty_vector");
-      return res.status(500).json({ error: "embedding_failed" });
+    if (!query_embedding) {
+      console.error("[QUERY] missing query_embedding");
+      return res.status(400).json({ error: "query_embedding_required" });
     }
-    const vectorLiteral = toPgVectorLiteral(vector);
+    const vectorLiteral = toPgVectorLiteral(query_embedding);
     client = await pool.connect();
     const buildFilterClauses = (allowedDocsParam: number, userIdParam: number) => {
       const clauses = ["d.is_enabled = true"];
