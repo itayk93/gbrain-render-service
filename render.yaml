@@ -1,0 +1,28 @@
+services:
+  - type: web
+    name: lony-gbrain-service
+    env: node
+    plan: starter
+    rootDir: gbrain-render-service
+    buildCommand: npm ci && npm run build
+    startCommand: npm run start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "10000"
+      - key: DATABASE_URL
+        sync: false
+      - key: SERVICE_API_KEY
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: OPENAI_EMBEDDING_MODEL
+        value: text-embedding-3-small
+      - key: DEFAULT_TOP_K
+        value: "20"
+      - key: MAX_TOP_K
+        value: "50"
+      - key: DEFAULT_MIN_SCORE
+        value: "0.2"
