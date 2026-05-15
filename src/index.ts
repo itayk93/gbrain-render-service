@@ -101,27 +101,26 @@ app.post("/query", authMiddleware, async (req, res) => {
     }
     const vectorLiteral = toPgVectorLiteral(query_embedding);
     client = await pool.connect();
-    const buildFilterClauses = (allowedDocsParam: number, userIdParam: number) => {
+    const buildFilter = (firstParamIndex: number) => {
       const clauses = ["d.is_enabled = true"];
+      const params: unknown[] = [];
       if (allowed_document_ids && allowed_document_ids.length > 0) {
-        clauses.push(`c.document_id = ANY($${allowedDocsParam}::text[])`);
+        params.push(allowed_document_ids);
+        clauses.push(`c.document_id = ANY($${firstParamIndex + params.length - 1}::text[])`);
       }
       if (user_id) {
+        params.push(user_id);
         clauses.push(`NOT EXISTS (
           SELECT 1 FROM public.knowledge_document_access b
-          WHERE b.user_id = $${userIdParam}::uuid
+          WHERE b.user_id = $${firstParamIndex + params.length - 1}::uuid
             AND b.document_id::text = c.document_id
         )`);
       }
-      return clauses;
+      return { clauses, params };
     };
 
-    const accessParams: unknown[] = [
-      allowed_document_ids && allowed_document_ids.length > 0 ? allowed_document_ids : null,
-      user_id || null,
-    ];
-    const semanticFilterClauses = buildFilterClauses(3, 4);
-    const lexicalFilterClauses = buildFilterClauses(2, 3);
+    const semanticFilter = buildFilter(3);
+    const lexicalFilter = buildFilter(2);
 
     const semanticSql = `
       SELECT
@@ -135,11 +134,11 @@ app.post("/query", authMiddleware, async (req, res) => {
       FROM public.gbrain_chunks c
       JOIN public.gbrain_documents d ON d.id = c.document_id
       WHERE (1 - (c.embedding <=> $1::vector)) >= $2
-        AND ${semanticFilterClauses.join(" AND ")}
+        AND ${semanticFilter.clauses.join(" AND ")}
       ORDER BY c.embedding <=> $1::vector ASC
       LIMIT 300
     `;
-    const semanticResult = await client.query(semanticSql, [vectorLiteral, minScore, ...accessParams]);
+    const semanticResult = await client.query(semanticSql, [vectorLiteral, minScore, ...semanticFilter.params]);
 
     const lexicalSql = `
       SELECT
@@ -152,11 +151,11 @@ app.post("/query", authMiddleware, async (req, res) => {
         ts_rank_cd(to_tsvector('simple', c.content), websearch_to_tsquery('simple', $1::text))::float8 AS lex_score
       FROM public.gbrain_chunks c
       JOIN public.gbrain_documents d ON d.id = c.document_id
-      WHERE ${lexicalFilterClauses.join(" AND ")}
+      WHERE ${lexicalFilter.clauses.join(" AND ")}
       ORDER BY ts_rank_cd(to_tsvector('simple', c.content), websearch_to_tsquery('simple', $1::text)) DESC
       LIMIT 200
     `;
-    const lexicalResult = await client.query(lexicalSql, [query, ...accessParams]);
+    const lexicalResult = await client.query(lexicalSql, [query, ...lexicalFilter.params]);
 
     const keyOf = (row: any) => `${row.id}`;
     const semanticRank = new Map<string, number>();
